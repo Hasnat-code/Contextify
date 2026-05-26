@@ -198,20 +198,57 @@ export default function Dashboard() {
 
       console.log("✅ Database record created:", dbData);
       setUploadProgress(100);
+      // Step 5: Trigger document processing API
+// Step 5: Trigger document processing API
+console.log("🧠 Starting document processing...");
 
+// Create multipart form data
+const formData = new FormData();
+formData.append("file", file);
+
+const processResponse = await fetch("/api/process-document", {
+  method: "POST",
+  body: formData,
+});
+
+const processData = await processResponse.json();
+
+if (!processResponse.ok) {
+  console.error("❌ Processing error:", processData);
+
+  setUploadMessage({
+    type: "error",
+    text: `Document uploaded but processing failed: ${
+      processData.error || "Unknown error"
+    }`,
+  });
+
+  setUploading(false);
+  return;
+}
+
+console.log("✅ Document processed successfully:", processData);
+
+setUploadProgress(100);
+
+// Success message
+setUploadMessage({
+  type: "success",
+  text: `✓ File uploaded and processed successfully! Chunks created: ${
+    processData.chunksProcessed || 0
+  }`,
+});
+
+// Reset form
+setFile(null);
+setUploadProgress(0);
+
+// Refresh uploaded files
+await fetchUploadedFiles(user.id);
+
+console.log("✅ Upload complete!");
       // Step 5: Success! Reset and refresh
-      setUploadMessage({
-        type: "success",
-        text: "✓ File uploaded successfully!",
-      });
-
-      // Reset form
-      setFile(null);
-      setUploadProgress(0);
-
-      // Refresh file list
-      console.log("🔄 Refreshing file list...");
-      await fetchUploadedFiles(user.id);
+      
 
       console.log("✅ Upload complete!");
     } catch (err) {
