@@ -5,6 +5,12 @@ import { createClient } from "@supabase/supabase-js";
 import mammoth from "mammoth";
 import { RecursiveCharacterTextSplitter } from "@langchain/textsplitters";
 
+
+import pdf from "pdf-parse/lib/pdf-parse.js";
+
+// ✅ DISABLE PDF WORKER
+
+
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
   process.env.SUPABASE_SERVICE_ROLE_KEY
@@ -18,10 +24,11 @@ export async function POST(req) {
     const file = formData.get("file");
 
     if (!file) {
-      console.log("❌ No file received");
-
       return NextResponse.json(
-        { error: "No file uploaded" },
+        {
+          success: false,
+          error: "No file uploaded",
+        },
         { status: 400 }
       );
     }
@@ -34,69 +41,64 @@ export async function POST(req) {
     let extractedText = "";
 
     // =========================
-    // PDF TEXT EXTRACTION
+    // PDF PROCESSING
     // =========================
     if (file.type === "application/pdf") {
 
-      console.log("📕 Processing PDF");
+  console.log("📕 Processing PDF");
 
-      const pdfParse = (await import("pdf-parse")).default;
+  const pdfData = await pdf(buffer);
 
-      const pdfData = await pdfParse(buffer);
-
-      extractedText = pdfData.text;
-
-    }
+  extractedText = pdfData.text;
+}
 
     // =========================
-    // DOCX TEXT EXTRACTION
+    // DOCX PROCESSING
     // =========================
     else if (
       file.type ===
       "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
     ) {
-
       console.log("📝 Processing DOCX");
 
-      const result = await mammoth.extractRawText({ buffer });
+      const result = await mammoth.extractRawText({
+        buffer,
+      });
 
       extractedText = result.value;
-
     }
 
     // =========================
-    // TXT TEXT EXTRACTION
+    // TXT PROCESSING
     // =========================
     else if (file.type === "text/plain") {
-
       console.log("📄 Processing TXT");
 
       extractedText = buffer.toString("utf-8");
-
     }
 
     // =========================
     // UNSUPPORTED FILE
     // =========================
     else {
-
-      console.log("❌ Unsupported file type:", file.type);
-
       return NextResponse.json(
-        { error: "Unsupported file type" },
+        {
+          success: false,
+          error: "Unsupported file type",
+        },
         { status: 400 }
       );
     }
 
-    // =========================
-    // CHECK EXTRACTED TEXT
-    // =========================
     console.log("✅ TEXT EXTRACTED");
-    console.log("📏 Text length:", extractedText.length);
+    console.log("📏 Length:", extractedText.length);
 
     if (!extractedText || extractedText.trim().length === 0) {
       return NextResponse.json(
-        { error: "No text could be extracted from file" },
+        {
+          success: false,
+          error: "No text extracted",
+        },
         { status: 400 }
       );
     }
@@ -104,7 +106,7 @@ export async function POST(req) {
     // =========================
     // SAVE FILE RECORD
     // =========================
-    console.log("💾 Saving file record...");
+    console.log("💾 Saving file record");
 
     const { data: fileRecord, error: fileError } = await supabase
       .from("uploaded_files")
@@ -117,16 +119,16 @@ export async function POST(req) {
       .single();
 
     if (fileError) {
-      console.error("❌ FILE INSERT ERROR:", fileError);
+      console.error(fileError);
       throw fileError;
     }
 
-    console.log("✅ File record saved:", fileRecord.id);
+    console.log("✅ File saved:", fileRecord.id);
 
     // =========================
-    // LANGCHAIN CHUNKING
+    // CHUNKING
     // =========================
-    console.log("✂️ Creating chunks...");
+    console.log("✂️ Creating chunks");
 
     const splitter = new RecursiveCharacterTextSplitter({
       chunkSize: 1000,
@@ -137,38 +139,35 @@ export async function POST(req) {
 
     const chunks = chunkDocs.map((doc) => doc.pageContent);
 
-    console.log(`✅ TOTAL CHUNKS: ${chunks.length}`);
+    console.log("✅ Chunks:", chunks.length);
 
     // =========================
     // INSERT CHUNKS
     // =========================
     for (let i = 0; i < chunks.length; i++) {
+      console.log(`📥 Inserting chunk ${i + 1}`);
 
-      console.log(`📥 Inserting chunk ${i + 1}/${chunks.length}`);
-
-      const { error: insertError } = await supabase
+      const { error } = await supabase
         .from("document_chunks")
         .insert({
           document_id: fileRecord.id,
           content: chunks[i],
         });
 
-      if (insertError) {
-        console.error("❌ CHUNK INSERT ERROR:", insertError);
-        throw insertError;
+      if (error) {
+        console.error("❌ Chunk insert error:", error);
+        throw error;
       }
     }
 
-    console.log("🎉 ALL CHUNKS INSERTED");
+    console.log("🎉 SUCCESS");
 
     return NextResponse.json({
       success: true,
       fileName: file.name,
       chunksProcessed: chunks.length,
     });
-
   } catch (error) {
-
     console.error("🔥 API ROUTE ERROR:");
     console.error(error);
 
