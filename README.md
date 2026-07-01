@@ -34,11 +34,11 @@ Click the link above to access the live demo and start chatting with your docume
 ## 📸 Screenshots
 
 ### Sign In Interface
-![Sign In Page](https://github.com/Hasnat-code/Contextify/blob/main/public/signin.png?raw=true)
+![Sign In Page](public/signin.png)
 *Clean and intuitive sign-in interface for secure access*
 
 ### Document Chat Interface
-![Document Chat](https://github.com/Hasnat-code/Contextify/blob/main/public/chat.png?raw=true)
+![Document Chat](public/chat.png)
 *Upload documents and interact with them through natural language conversations*
 
 ---
