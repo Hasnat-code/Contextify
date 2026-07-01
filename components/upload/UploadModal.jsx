@@ -15,9 +15,11 @@ export default function UploadModal({ user, open, onClose, onUploaded }) {
       try {
         setError("");
         setLoading(true);
-        setStage("Uploading and processing document...");
+        setStage("Reading document...");
 
         const file = acceptedFiles[0];
+
+        setStage("Uploading and processing document...");
 
         const document = await uploadDocument(file, user);
 
@@ -36,7 +38,11 @@ export default function UploadModal({ user, open, onClose, onUploaded }) {
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
     multiple: false,
+    disabled: loading,
     accept: {
+      "application/pdf": [".pdf"],
+      "application/vnd.openxmlformats-officedocument.wordprocessingml.document":
+        [".docx"],
       "text/plain": [".txt"],
       "text/markdown": [".md"],
     },
@@ -80,7 +86,7 @@ export default function UploadModal({ user, open, onClose, onUploaded }) {
           </p>
 
           <p className="mt-2 text-sm text-gray-500">
-            TXT or Markdown only for now.
+            PDF, DOCX, TXT, or Markdown up to 50MB.
           </p>
 
           <button
