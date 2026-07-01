@@ -86,7 +86,7 @@ export default function UploadModal({ user, open, onClose, onUploaded }) {
           </p>
 
           <p className="mt-2 text-sm text-gray-500">
-            PDF, DOCX, TXT, or Markdown up to 50MB.
+            PDF, DOCX, TXT, or Markdown up to 100MB.
           </p>
 
           <button

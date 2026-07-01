@@ -25,8 +25,11 @@ export default function Auth() {
       ? await supabase.auth.signUp({ email, password })
       : await supabase.auth.signInWithPassword({ email, password });
 
-    if (error) alert(error.message);
-    else if (signup) alert("Account created. Check email if confirmation is enabled.");
+    if (error) {
+      alert(error.message);
+    } else if (signup) {
+      alert("Account created. Check email if confirmation is enabled.");
+    }
 
     setLoading(false);
   }
@@ -35,14 +38,14 @@ export default function Auth() {
     <div className="relative flex h-screen w-screen items-center justify-center overflow-hidden bg-[#0b1410] font-sans">
       <div className="pointer-events-none absolute inset-0 overflow-hidden">
         <div className="animate-[scrollDown_30s_linear_infinite]">
-          {[...Array(40), ...Array(40)].map((_, i) => (
+          {Array.from({ length: 90 }).map((_, i) => (
             <div
               key={i}
               className={`select-none whitespace-nowrap py-1 text-[112px] font-black leading-none tracking-[-3px] text-[#1a3325] ${
-                i % 2 === 0 ? "-translate-x-8" : "translate-x-10"
+                i % 2 === 0 ? "-translate-x-8" : "-translate-x-72"
               }`}
             >
-              Contextify
+              Contextify Contextify Contextify Contextify Contextify
             </div>
           ))}
         </div>
@@ -50,8 +53,13 @@ export default function Auth() {
 
       <style jsx global>{`
         @keyframes scrollDown {
-          0% { transform: translateY(0); }
-          100% { transform: translateY(-50%); }
+          0% {
+            transform: translateY(0);
+          }
+
+          100% {
+            transform: translateY(-50%);
+          }
         }
       `}</style>
 
@@ -95,7 +103,10 @@ export default function Auth() {
                 <span className="flex h-7 w-7 items-center justify-center rounded-md bg-white/15 text-sm">
                   {icon}
                 </span>
-                <p className="text-[11.5px] font-medium text-white/90">{text}</p>
+
+                <p className="text-[11.5px] font-medium text-white/90">
+                  {text}
+                </p>
               </div>
             ))}
           </div>
@@ -121,6 +132,7 @@ export default function Auth() {
               <label className="mb-1 block text-[11.5px] font-medium text-white/50">
                 Email address
               </label>
+
               <input
                 type="email"
                 placeholder="you@example.com"
@@ -135,6 +147,7 @@ export default function Auth() {
               <label className="mb-1 block text-[11.5px] font-medium text-white/50">
                 Password
               </label>
+
               <input
                 type="password"
                 placeholder={signup ? "Create a strong password" : "••••••••"}
@@ -151,6 +164,7 @@ export default function Auth() {
                   <input type="checkbox" className="accent-[#22c55e]" />
                   Remember me
                 </label>
+
                 <span className="cursor-pointer hover:text-[#22c55e]">
                   Forgot password?
                 </span>
